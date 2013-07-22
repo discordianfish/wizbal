@@ -2,6 +2,7 @@ package lb
 
 import (
 	"errors"
+	"sync"
 	"fmt"
 	"github.com/miekg/dns"
 	"github.com/soundcloud/go-dns-resolver/resolv"
@@ -96,6 +97,7 @@ func NewRegistry() *registry {
 type registry struct {
 	client *http.Client
 	pools  map[service]*pool
+	sync.Mutex
 }
 
 func (r *registry) getPool(name service) *pool {
@@ -129,7 +131,9 @@ func (r *registry) resolvPool(name service) *pool {
 		time:     time.Now(),
 		backends: backends,
 	}
+	r.Lock()
 	r.pools[name] = p
+	r.Unlock()
 	return p
 }
 
