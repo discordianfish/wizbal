@@ -11,7 +11,7 @@ type proxy struct {
 	listen    string
 	hostStrip string
 	domainAdd string
-	registry      *registry
+	registry  *registry
 	proxy     *httputil.ReverseProxy
 }
 
