@@ -116,14 +116,21 @@ func (r *registry) resolvPool(name service) *pool {
 		log.Fatalf("Couldn't lookup %s: %s", name, err)
 	}
 	log.Printf("Resp: %v", msg)
+
+	wg := sync.WaitGroup{}
 	backends := []*backend{}
 	for _, rr := range msg.Answer {
 		record := rr.(*dns.SRV)
-		b := &backend{host: record.Target, port: record.Port}
-		if b.alive(r.client) {
-			backends = append(backends, b)
-		}
+		wg.Add(1)
+		go func() {
+			b := &backend{host: record.Target, port: record.Port}
+			if b.alive(r.client) {
+				backends = append(backends, b)
+			}
+			wg.Done()
+		}()
 	}
+	wg.Wait()
 
 	p := &pool{
 		time:     time.Now(),
