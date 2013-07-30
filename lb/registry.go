@@ -2,7 +2,6 @@ package lb
 
 import (
 	"errors"
-	"sync"
 	"fmt"
 	"github.com/miekg/dns"
 	"github.com/soundcloud/go-dns-resolver/resolv"
@@ -10,6 +9,7 @@ import (
 	"math/rand"
 	"net/http"
 	"net/url"
+	"sync"
 	"time"
 )
 
@@ -70,11 +70,9 @@ func (p *pool) randomBackend() *backend {
 	n := len(p.backends)
 	switch n {
 	case 0:
-		log.Printf("No backends found")
 		return nil
 
 	case 1:
-		log.Printf("Only one backend found")
 		return p.backends[0]
 
 	default:

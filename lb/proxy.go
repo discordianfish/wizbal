@@ -1,11 +1,28 @@
 package lb
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httputil"
 	"strings"
 )
+
+var (
+	ENoBackend = errors.New("No backends found")
+)
+
+type transport struct {
+	http.Transport
+}
+
+func (t *transport) RoundTrip(req *http.Request) (*http.Response, error) {
+	if req.URL.Host == "" {
+		return nil, ENoBackend
+	}
+	resp, err := t.Transport.RoundTrip(req)
+	return resp, err
+}
 
 type proxy struct {
 	listen    string
@@ -24,7 +41,8 @@ func New(listen, hostStrip, domainAdd string) *proxy {
 	}
 
 	p.proxy = &httputil.ReverseProxy{
-		Director: p.director,
+		Director:  p.director,
+		Transport: &transport{},
 	}
 	return p
 }
@@ -45,5 +63,9 @@ func (p *proxy) director(req *http.Request) {
 	serviceName := fmt.Sprintf("%s.%s", name, p.domainAdd)
 
 	backend := p.registry.getBackend(service(serviceName))
-	req.URL.Host = fmt.Sprintf("%s:%d", backend.host, backend.port)
+	if backend != nil {
+		req.URL.Host = fmt.Sprintf("%s:%d", backend.host, backend.port)
+	} else {
+		req.URL.Host = ""
+	}
 }
