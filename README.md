@@ -24,4 +24,5 @@ suggesting the name.
 Let say you have some backends under my-service.srv.example.com. Now you can access http://my-service.app.example.com:8080
 
 
-# 
+# TODO
+- Cache SRV names and refresh regularly to avoid doing on-demand resolving
